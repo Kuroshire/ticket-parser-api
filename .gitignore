@@ -1,0 +1,13 @@
+node_modules
+dist
+ticket-test
+
+*.traineddata
+.DS_Store
+.env
+*.log
+*.tmp
+*.swp
+.idea/
+.vscode/
+coverage/
