@@ -1,9 +1,9 @@
 export class GroceryItem {
     TVA: string;
     product: string;
-    quantity: string;
-    unitPrice: string;
-    totalCost: string;
+    quantity: number;
+    unitPrice: number;
+    totalCost: number;
 
     constructor({
         TVA, 
@@ -14,9 +14,9 @@ export class GroceryItem {
     }: {
         TVA: string, 
         product: string, 
-        quantity: string, 
-        unitPrice: string, 
-        totalCost: string
+        quantity: number, 
+        unitPrice: number, 
+        totalCost: number
     }) {
         this.TVA = TVA;
         this.product = product;

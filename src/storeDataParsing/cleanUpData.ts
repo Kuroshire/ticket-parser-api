@@ -1,13 +1,17 @@
 import { GroceryItem, GroceryListWithPrice } from "./GroceryItem.model";
-
-export enum GroceryStore {
-    CARREFOUR = "CARREFOUR",
-    AUCHAN = "AUCHAN"
-}
+import { GroceryStore } from "./GroceryStore";
+import { PriceFromStringToNumber, QuantityFromStringToNumber } from "./utils/PriceConversion";
 
 export class CleanUpDataService {
 
-    public cleanUpData(data: string, store: GroceryStore): GroceryListWithPrice {
+    public cleanUpData({
+        data, 
+        store
+    } : {
+        data: string, 
+        store: GroceryStore
+    }): GroceryListWithPrice {
+        
         data.trim();
         switch (store) {
             case GroceryStore.CARREFOUR:
@@ -21,6 +25,10 @@ export class CleanUpDataService {
 
     private parseCarrefour(data: string): GroceryListWithPrice {
         const dataWithoutHeader = data.split("TVA Produit QTExP.U. Montant €");
+        if(dataWithoutHeader.length < 2) {
+            throw new Error("Data is not in the expected format");
+        }
+
         const groceryListData = dataWithoutHeader[1].split("Total à payer");
         const totalPrice = groceryListData[1].split("€")[0].trim();
 
@@ -31,9 +39,9 @@ export class CleanUpDataService {
             const length = currentItem.length;
             let TVA = currentItem[0];
             let product = Array.from(currentItem).slice(1, length-4).join(" ");
-            let quantity = currentItem[length-3];
-            let unitPrice = currentItem[length-2];
-            let totalCost = currentItem[length-1];
+            let quantity = QuantityFromStringToNumber(currentItem[length-3]);
+            let unitPrice = PriceFromStringToNumber(currentItem[length-2]);
+            let totalCost = PriceFromStringToNumber(currentItem[length-1]);
 
             return new GroceryItem({
                 TVA,
@@ -63,11 +71,11 @@ export class CleanUpDataService {
                 //example of line with dups: *LUSTUCRU TORTELLI.. 2*2,54 5,08
                 //example of line without dups: *LAYS CHIP SAVEUR .. 1,99
                 let TVA = "0";
-                let totalCost = currentItem[currentItem.length-1];
+                let totalCost = PriceFromStringToNumber(currentItem[currentItem.length-1]);
 
                 let QuantityAndPrice = currentItem.find(item => item.match(/\d+\*\d+,\d{2}/));
-                let quantity = QuantityAndPrice ? QuantityAndPrice.split("*")[0] : "1";
-                let unitPrice = QuantityAndPrice ? QuantityAndPrice.split("*")[1] : totalCost;
+                let quantity: number = QuantityAndPrice ? QuantityFromStringToNumber(QuantityAndPrice.split("*")[0]) : 1;
+                let unitPrice: number = QuantityAndPrice ? PriceFromStringToNumber(QuantityAndPrice.split("*")[1]) : totalCost;
 
                 let product = QuantityAndPrice ? 
                     currentItem.slice(1, currentItem.length - 3).join(" ") : 
@@ -88,3 +96,5 @@ export class CleanUpDataService {
         }
     }
 }
+
+export default new CleanUpDataService();
